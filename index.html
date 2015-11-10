@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=utf-8">
+		<title>Spur Gear creator</title>
+		<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+		<script type="text/javascript" src="dat.gui.min.js"></script>
+		<script>
+
+			var precision = 3;
+
+			function round(value, decimals) {
+    			return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+			}
+
+			function getN() { 
+				var N = Number( $("#N").val() );
+				if( N<3 ) {
+					N = 3;
+					setN( N );
+				}
+				return N;
+			}			
+			function setN( v ) { $("#N").val( round(v,precision) ); }			
+			function getD() { return Number( $("#D").val() ); }			
+			function setD( v ) { $("#D").val( round(v,precision) ); }
+			function getDmm() { return Number( $("#Dmm").val() ); }			
+			function setDmm( v ) { $("#Dmm").val( round(v,precision) ); }
+			function getP() { return Number( $("#P").val() ); }			
+			function setP( v ) { $("#P").val( round(v,precision) ); }		
+			function getM() { return Number( $("#M").val() ); }			
+			function setM( v ) { $("#M").val( round(v,precision) ); }				
+			function getscale() { return Number( $("#scale").val() ); }			
+			function setscale( v ) { $("#scale").val( v ); }
+			function setNc( v ) { $("#Nc").prop('checked', v); }			
+			function getNc() { return ( $("#Nc").is(":checked") ); }
+			function setDc( v ) { $("#Dc").prop('checked', v); }			
+			function getDc() { return ( $("#Dc").is(":checked") ); }
+			function setPc( v ) { $("#Pc").prop('checked', v); }			
+			function getPc() { return ( $("#Pc").is(":checked") ); }
+
+			function getN2() { 
+				var N = Number( $("#N2").val() );
+				if( N<3 ) {
+					N = 3;
+					setN2( N );
+				}
+				return N;
+			}			
+			function setN2( v ) { $("#N2").val( round(v,precision) ); }
+			function getD2() { return Number( $("#D2").val() ); }			
+			function setD2( v ) { $("#D2").val( round(v,precision) ); }
+			function getD2mm() { return Number( $("#D2mm").val() ); }			
+			function setD2mm( v ) { $("#D2mm").val( round(v,precision) ); }
+			function getC() { return Number( $("#C").val() ); }			
+			function setC( v ) { $("#C").val( round(v,precision) ); }
+			function getR() { return Number( $("#R").val() ); }			
+			function setR( v ) { $("#R").val( round(v,precision) ); }
+			
+			//
+			var shift,
+				guides = true;
+
+			
+			function Nadd( a ) {
+				var N = getN()+a;
+				setN( N );
+				Nchange();
+			}
+
+			function Nchange() {
+				if (getNc() && getDc() || getDc()) {
+					calcP();
+				} else {
+					calcD();
+				}
+				calcC();
+				calcR();
+			}
+			function Dchange() {
+				if (getNc() && getDc()) {
+					calcP();
+				} else {
+					calcN();
+				}
+				setDmm(getD()*25.4)
+				calcC();
+				calcR();
+			}
+			function Dmmchange() {
+				setD(getDmm()/25.4)
+				Dchange();
+				calcC();
+				calcR();
+			}
+			function Pchange() {
+				if (getNc()) {
+					setDc(false);
+					calcD();
+					calcD2();
+				} else {
+					calcN();
+					calcN2();
+				}
+				setM( 25.4/getP() );
+				calcC();
+				calcR();	
+			}
+			function Mchange() {
+				if (getNc()) {
+					calcD();
+					setDc(false);
+				} else {
+					calcN();
+				}
+				setP( 25.4/getM() );
+				calcC();
+				calcR();	
+			}
+
+			function N2change() {
+				// if (getNc() && getDc() || getDc()) {
+				// 	calcP();
+				// } else {
+				// 	calcD();
+				// }
+				calcD2();
+				calcC();
+				calcR();
+			}
+			function D2change() {
+				// if (getNc() && getDc()) {
+				// 	calcP();
+				// } else {
+				// 	calcN();
+				// }
+				calcN2();
+				setD2mm(getD2()*25.4);
+				calcC();
+				calcR();
+			}
+			function D2mmchange() {
+				setD2(getD2mm()/25.4)
+				D2change();
+				calcR();
+			}
+
+			function calcN() {
+				var N = getD()*getP();
+				N = Math.floor( N );
+				setN( N );
+			}
+
+			function calcP() {
+				var P = getN()/getD();
+				setP( P );
+				setM( 25.4/P );
+			}
+
+			function calcD() {
+				var D = getN()/getP();
+				setD( D );
+				setDmm( D*25.4 );
+			}
+
+			function calcD2() {
+				var D = getN2()/getP();
+				setD2( D );
+				setD2mm( D*25.4 );
+			}
+
+			function calcN2() {
+				var N = getD2()*getP();
+				N2 = Math.floor( N );
+				setN2( N );
+			}
+
+			function calcC() {
+				var C = getD()/2.+getD2()/2.;
+				setC(C);
+			}
+
+			function calcR() {
+				var R = getN2()/getN();
+				setR(R);
+			}
+
+
+			function reset() {
+				$("#N").bind("enterKey",Nchange);
+				$("#N").keydown(function(e){ // not working yet
+					if(e.keycode == 38) { 
+						console.log("here");
+						Nadd(1); 
+					}
+				});
+				$("#D").bind("enterKey",Dchange);
+				$("#Dmm").bind("enterKey",Dmmchange);
+				$("#P").bind("enterKey",Pchange);
+				$("#M").bind("enterKey",Mchange);
+				$("#N2").bind("enterKey",N2change);
+				$("#D2").bind("enterKey",D2change);
+				$("#D2mm").bind("enterKey",D2mmchange);
+				$("input").keyup("keyup",function(e){
+					shift = e.shiftKey;
+					if(e.keyCode == 13) {
+						$(this).trigger("enterKey");
+					}
+				});
+			}
+
+		</script>
+		<style>
+			p {
+				font-family: Courier;
+			}
+			h3 {
+				font-family: Courier;
+				margin-bottom: 5px;
+			}
+			label {
+				font-family: Courier;
+				display: inline-block;
+				text-align: right;
+				width: 26px;
+			}
+			input {
+				font-family: Courier;
+				font-size: 18px;
+				width: 70px;
+				text-align: right;
+				margin-right: 5px;
+			}
+			.check {
+				width: 15px;
+			}
+			span {
+				font-family: courier;
+			}
+			.ratio {
+				width: 30px;
+			}
+			#svg {
+				position: absolute;
+				top: 18px;
+				left: 432px;
+				/*background: #f8f8f8;*/
+			}
+			textarea {
+				margin-top: 16px;
+				width: 322px;
+				height: 104px;
+			}
+		</style>
+	</head>
+	<body>
+		<p>
+			
+			
+			<table style="width:100%">
+			<tr style="vertical-align: top">
+			<td>
+			<h3>Pinion</h3>
+			<div style="margin-left:40px">
+				<table stye="width:500px">
+					<tr>
+						<td><label>Fix</label></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr>			
+						<td><input type="checkbox" class="check" id="Nc" checked="true"></td>
+						<td><label for="N">n</label></td>
+						<td><span><input type="text" id="N" value="8">teeth</span></td>
+						<td></td>
+						<td><label></label></td>
+						<td><label style="width: 200px; text-align:left">Number of teeth</label></td>
+					</tr>
+					<tr>
+						<td><input type="checkbox" class="check" id="Dc" checked="true"></td>
+						<td><label for="D">d</label></td>
+						<td><span><input type="text" id="D" value="1.0">inch</span></td>
+						<td><span><input type="text" id="Dmm" value="25.4">mm</span></td>
+						<td><label></label></td>
+						<td><label style="width: 200px; text-align:left">Pitch diameter</label></td>
+					</tr>
+					<tr>
+						<td><span> </span></td>
+						<td><label for="P">p</label></td>
+						<td><input type="text" id="P"></td>
+						<td></td>
+						<td><label></label></td>
+						<td><label style="width: 200px; text-align:left">Diametral pitch</label></td>
+					</tr>
+					<tr>
+						<td><span> </span></td>
+						<td><label for="M">m</label></td>
+						<td><span><input type="text" id="M">mm</span></td>
+						<td></td>
+						<td><label></label></td>
+						<td><label style="width: 200px; text-align:left">Module</label></td>
+					</tr>
+				</table>
+			</div>
+
+			<h3>Gear</h3>
+			<div style="margin-left:40px">
+				<table stye="width:500px">
+					<tr>			
+						<td><label> </label></td>
+						<td><label for="N2">n</label></td>
+						<td><span><input type="text" id="N2" value="80">teeth</span></td>
+						<td></td>
+						<td><label></label></td>
+						<td><label style="width: 200px; text-align:left">Number of teeth</label></td>
+					</tr>
+					<tr>
+						<td><!-- <input type="checkbox" class="check" id="D2c" checked="true"> --></td>
+						<td><label for="D2">d</label></td>
+						<td><span><input type="text" id="D2" value="10.0">inch</span></td>
+						<td><span><input type="text" id="D2mm" value="25.4">mm</span></td>
+						<td><label></label></td>
+						<td><label style="width: 200px; text-align:left">Pitch diameter</label></td>
+					</tr>
+				</table>
+			</div>
+			<br>
+			<div style="margin-left:40px">
+				<table stye="width:500px">
+					<tr>
+						<td><label>Fix</label></td>
+						<td></td>
+						<td></td>
+					</tr>
+					<tr>
+						<td><input type="checkbox" class="check" id="Cc"></td>
+						<td><label for="C">c</label></td>
+						<td style="width:133px"><span><input type="text" id="C" value="5.5">inch</span></td>
+						<td><span><input type="text" id="Cmm" value="25.4">mm</span></td>
+						<td><label></label></td>
+						<td><label style="width: 200px; text-align:left">Center distance</label></td>
+					</tr>
+					<tr>
+						<td><input type="checkbox" class="check" id="Cc"></td>
+						<td><label for="R">r</label></td>
+						<td><span><input type="text" id="R" value="10:1"></span></td>
+						<td><label style="text-align: center">[out:in]</label></td>
+						<td></td>
+						<td><label style="width: 200px; text-align:left">Gear ratios</label></td>
+					</tr>
+				</table>
+			</div>
+			</td>
+			<td>
+				<!-- <img src="http://www.groschopp.com/wp-content/uploads/Gear-Terminology-1024x913.png" width=500> -->
+				<img src="http://i200.photobucket.com/albums/aa294/oldtiffie/Black_book/BB_50-51A.jpg" width=500>
+				</td>
+			</tr>
+			</table>
+
+			
+
+		</p>
+		<p>
+		</p>
+		<div id="svg">
+		</div>
+	</body>
+	<script>
+		calcP();
+		reset();
+	</script>
+</html>
