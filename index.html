@@ -38,6 +38,7 @@
 			function getDc() { return ( $("#Dc").is(":checked") ); }
 			function setPc( v ) { $("#Pc").prop('checked', v); }			
 			function getPc() { return ( $("#Pc").is(":checked") ); }
+			
 
 			function getN2() { 
 				var N = Number( $("#N2").val() );
@@ -56,6 +57,8 @@
 			function setC( v ) { $("#C").val( round(v,precision) ); }
 			function getR() { return Number( $("#R").val() ); }			
 			function setR( v ) { $("#R").val( round(v,precision) ); }
+			function getCmm() { return Number( $("#Cmm").val() ); }			
+			function setCmm( v ) { $("#Cmm").val( round(v,precision) ); }
 			
 			//
 			var shift,
@@ -145,6 +148,22 @@
 				calcR();
 			}
 
+			function Cchange() {
+				setCmm(getC() * 25.4);
+				calcD2C();
+				calcN2();
+				setD2mm(getD2*25.4);
+				calcR();
+			}
+
+			function Cmmchange() {
+				setC(getCmm() / 25.4);
+				calcD2C();
+				calcN2();
+				setD2mm(getD2*25.4);
+				calcR();
+			}
+
 			function calcN() {
 				var N = getD()*getP();
 				N = Math.floor( N );
@@ -178,11 +197,18 @@
 			function calcC() {
 				var C = getD()/2.+getD2()/2.;
 				setC(C);
+				setCmm( C*25.4 );
 			}
 
 			function calcR() {
 				var R = getN2()/getN();
 				setR(R);
+			}
+
+			function calcD2C() {
+				var D2 = 2*(getC() - getD()/2.);
+				setD2(D2);
+				setD2mm(D2/25.4);
 			}
 
 
@@ -201,6 +227,8 @@
 				$("#N2").bind("enterKey",N2change);
 				$("#D2").bind("enterKey",D2change);
 				$("#D2mm").bind("enterKey",D2mmchange);
+				$("#C").bind("enterKey",Cchange);
+				$("#Cmm").bind("enterKey",Cmmchange);
 				$("input").keyup("keyup",function(e){
 					shift = e.shiftKey;
 					if(e.keyCode == 13) {
